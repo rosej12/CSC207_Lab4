@@ -1,18 +1,8 @@
 package app.gui;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import java.awt.*;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 import api.MongoGradeDataBase;
 import app.Config;
@@ -40,6 +30,7 @@ public class Application {
         // of GradeDB, this config is what we would change.
         final Config config = new Config();
 
+        final DisplayGradesUseCase displayGradesUseCase = config.getDisplayGradesUseCase();
         final GetGradeUseCase getGradeUseCase = config.getGradeUseCase();
         final LogGradeUseCase logGradeUseCase = config.logGradeUseCase();
         final FormTeamUseCase formTeamUseCase = config.formTeamUseCase();
@@ -58,6 +49,7 @@ public class Application {
             final JPanel cardPanel = new JPanel(cardLayout);
 
             final JPanel defaultCard = createDefaultCard();
+            final JPanel myGradesCard = createMyGradesCard(displayGradesUseCase);
             final JPanel getGradeCard = createGetGradeCard(frame, getGradeUseCase);
             final JPanel logGradeCard = createLogGradeCard(frame, logGradeUseCase);
             final JPanel formTeamCard = createFormTeamCard(frame, formTeamUseCase);
@@ -66,11 +58,15 @@ public class Application {
                     getTopGradeUseCase);
 
             cardPanel.add(defaultCard, "DefaultCard");
+            cardPanel.add(myGradesCard, "MyGradesCard");
             cardPanel.add(getGradeCard, "GetGradeCard");
             cardPanel.add(logGradeCard, "LogGradeCard");
             cardPanel.add(formTeamCard, "FormTeamCard");
             cardPanel.add(joinTeamCard, "JoinTeamCard");
             cardPanel.add(manageTeamCard, "ManageTeamCard");
+
+            final JButton displayGradesButton = new JButton("Display Grades");
+            displayGradesButton.addActionListener(event -> cardLayout.show(cardPanel, "MyGradesCard"));
 
             final JButton getGradeButton = new JButton("Get Grade");
             getGradeButton.addActionListener(event -> cardLayout.show(cardPanel, "GetGradeCard"));
@@ -88,6 +84,7 @@ public class Application {
             manageTeamButton.addActionListener(event -> cardLayout.show(cardPanel, "ManageTeamCard"));
 
             final JPanel buttonPanel = new JPanel();
+            buttonPanel.add(displayGradesButton);
             buttonPanel.add(getGradeButton);
             buttonPanel.add(logGradeButton);
             buttonPanel.add(formTeamButton);
@@ -114,6 +111,20 @@ public class Application {
         defaultCard.add(infoLabel);
 
         return defaultCard;
+    }
+
+    private static JPanel createMyGradesCard(DisplayGradesUseCase displayGradesUseCase) {
+        JPanel myGradesCard = new JPanel();
+        BoxLayout boxLayout = new BoxLayout(myGradesCard, BoxLayout.Y_AXIS);
+        Grade[] grades = displayGradesUseCase.getGrades();
+
+        myGradesCard.setLayout(boxLayout);
+
+        for (Grade grade : grades) {
+            JLabel label = new JLabel("Your grade for " + grade.getCourse() + " is " + grade.getGrade());
+            myGradesCard.add(label);
+        }
+        return myGradesCard;
     }
 
     private static JPanel createGetGradeCard(JFrame jFrame, GetGradeUseCase getGradeUseCase) {
